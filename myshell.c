@@ -127,6 +127,56 @@ static Command *parse_line(char *line) {
 }
 
 /*
+ * Execute external command using fork/exec pattern
+ * Demonstrates core process management concepts
+ */
+static int execute_external(Command *cmd) {
+    pid_t pid = fork();
+    
+    if (pid < 0) {
+        // Fork failed
+        perror("fork");
+        return 1;
+    }
+    
+    if (pid == 0) {
+        // Child process: execute the command
+        execvp(cmd->args[0], cmd->args);
+        
+        // execvp only returns on error
+        fprintf(stderr, COLOR_ERROR "%s: command not found\n" COLOR_RESET, 
+                cmd->args[0]);
+        exit(EXIT_FAILURE);
+    }
+    
+    // Parent process
+    if (!cmd->background) {
+        // Foreground: wait for child to complete
+        int status;
+        pid_t wait_result;
+        
+        do {
+            wait_result = waitpid(pid, &status, 0);
+        } while (wait_result == -1 && errno == EINTR);
+        
+        if (wait_result == -1) {
+            perror("waitpid");
+            return 1;
+        }
+        
+        if (WIFEXITED(status)) {
+            return WEXITSTATUS(status);
+        }
+    } else {
+        // Background: don't wait
+        printf("[Background] Process %d started\n", pid);
+    }
+    
+    return 0;
+}
+
+
+/*
  * Execute a command - dispatches to builtin or external
  */
 static int execute_command(Command *cmd) {
