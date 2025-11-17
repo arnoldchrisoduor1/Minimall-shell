@@ -62,6 +62,29 @@ static void display_prompt(void) {
 }
 
 /*
+ * Read a line of input from stdin
+ * Returns: Dynamically allocated string (caller must free)
+ */
+static char *read_line(void) {
+    char *line = NULL;
+    size_t bufsize = 0;
+
+    ssize_t len = getline(&line, &bufsize, stdin);
+
+    if(len == -1) {
+        free(line);
+        return NULL;
+    }
+
+    // remove the trailing new line.
+    if (len > 0 && lin[len - 1] == '\n') {
+        line[len - 1] = '\0';
+    }
+    
+    return line;
+}
+
+/*
 * Main REPL loop
 * Continuosly reads, parses, and executes commands.
 */
