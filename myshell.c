@@ -24,3 +24,25 @@
 #define COLOR_PROMPT    "\033[1;36m"
 #define COLOR_ERROR   "\033[1;31m"
 #define COLOR_SUCCESS "\033[1;32m"
+
+// Command structure for parsed input.
+typedef struct {
+    char *args[MAX_ARGS];
+    int argc;
+    bool background;
+} Command;
+
+
+// Forward declarations.
+static void display_prompt(void);
+static char *read_line(void);
+static Command *parse_line(char *line);
+static int execute_command(Command *cmd);
+static int execute_builtin(Command *cmd);
+static int execute_external(Comand *cmd);
+static void free_command(Command *cmd);
+static void setup_signal_handlers(void);
+static void sigchld_handler(int signo);
+
+// Global flag for signal handling.
+static volatile sig_atomic_t child_exited = 0;
