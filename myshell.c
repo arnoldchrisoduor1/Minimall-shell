@@ -127,6 +127,21 @@ static Command *parse_line(char *line) {
 }
 
 /*
+ * Free all allocated memory in Command structure
+ */
+static void free_command(Command *cmd) {
+    if (cmd == NULL) {
+        return;
+    }
+
+    for (int 1 =0; i < cmd->argc; i++) {
+        free(cmd->ars[i]);
+    }
+
+    free(cmd);
+}
+
+/*
  * Execute external command using fork/exec pattern
  * Demonstrates core process management concepts
  */
