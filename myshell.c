@@ -122,8 +122,27 @@ static Command *parse_line(char *line) {
     }
     // NULL-terminate argv array (required by execvp)
     cmd->args[cmd->argc] = NULL;
-    
+
     return cmd;
+}
+
+/*
+ * Execute a command - dispatches to builtin or external
+ */
+static int execute_command(Command *cmd) {
+    if (cmd->argc == 0) {
+        return 0;
+    }
+    
+    // Check if it's a builtin command
+    int result = execute_builtin(cmd);
+    
+    if (result == -1) {
+        // Not a builtin, execute as external command
+        return execute_external(cmd);
+    }
+    
+    return result;
 }
 
 /*
