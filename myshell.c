@@ -146,6 +146,62 @@ static int execute_command(Command *cmd) {
 }
 
 /*
+ * Execute builtin commands (must run in shell process)
+ */
+static int execute_builtin(Command *cmd) {
+    const char *command = cmd->args[0];
+    
+    // cd - change directory
+    if (strcmp(command, "cd") == 0) {
+        const char *path = (cmd->argc > 1) ? cmd->args[1] : getenv("HOME");
+        
+        if (path == NULL) {
+            fprintf(stderr, COLOR_ERROR "cd: HOME not set\n" COLOR_RESET);
+            return 1;
+        }
+        
+        if (chdir(path) != 0) {
+            perror("cd");
+            return 1;
+        }
+        return 0;
+    }
+    
+    // exit - terminate shell
+    if (strcmp(command, "exit") == 0) {
+        int exit_code = (cmd->argc > 1) ? atoi(cmd->args[1]) : 0;
+        exit(exit_code);
+    }
+    
+    // help - display help information
+    if (strcmp(command, "help") == 0) {
+        printf("\nModern C Shell - Available Commands:\n");
+        printf("  cd [dir]     - Change directory\n");
+        printf("  exit [code]  - Exit shell\n");
+        printf("  help         - Display this help\n");
+        printf("  pwd          - Print working directory\n");
+        printf("  <command> &  - Run command in background\n");
+        printf("\nAny other command will be executed as an external program.\n\n");
+        return 0;
+    }
+    
+    // pwd - print working directory
+    if (strcmp(command, "pwd") == 0) {
+        char cwd[MAX_TOKEN_SIZE];
+        if (getcwd(cwd, sizeof(cwd)) != NULL) {
+            printf("%s\n", cwd);
+            return 0;
+        } else {
+            perror("pwd");
+            return 1;
+        }
+    }
+    
+    return -1;  // Not a builtin
+}
+
+
+/*
 * Main REPL loop
 * Continuosly reads, parses, and executes commands.
 */
