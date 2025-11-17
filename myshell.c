@@ -142,6 +142,26 @@ static void free_command(Command *cmd) {
 }
 
 /*
+ * Setup signal handlers for shell
+ */
+static void setup_signal_handlers(void) {
+    struct sigaction sa;
+    
+    // Handle SIGCHLD to reap background processes
+    sa.sa_handler = sigchld_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART | SA_NOCLDSTOP;
+    
+    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+        perror("sigaction");
+    }
+    
+    // Ignore SIGINT (Ctrl+C) in shell itself
+    // Child processes will still receive it
+    signal(SIGINT, SIG_IGN);
+}
+
+/*
  * Execute external command using fork/exec pattern
  * Demonstrates core process management concepts
  */
