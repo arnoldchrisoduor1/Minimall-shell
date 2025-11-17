@@ -80,8 +80,50 @@ static char *read_line(void) {
     if (len > 0 && lin[len - 1] == '\n') {
         line[len - 1] = '\0';
     }
-    
+
     return line;
+}
+
+/*
+ * Parse input line into Command structure
+ * Handles tokenization and argument splitting
+ */
+static Command *parse_line(char *line) {
+    Command *cmd = calloc(1, sizeof(Command));
+    if (cmd == NULL) {
+        perror("calloc");
+        return NULL;
+    }
+
+    cmd->background = false;
+    cmd->argc = 0;
+
+    char *token;
+    char *saveptr;
+
+    // Tokenize by whitespace.
+    token = strtok_r(line, "\t\r\n", &saveptr);
+
+    while (token != NULL && cmd->argc < MAX_ARGS - 1) {
+        if(strcmp(token, "&") == 0) {
+            cmd->background = true;
+            break;
+        }
+
+        // Allcate and copy token.
+        cmd->args[cmd->argc] = strdup(token);
+        if (cmd->args[cmd->argc] == NULL) {
+            perror("strdup");
+            free_command(cmd);
+            return NULL;
+        }
+        cmd->argc++;
+        token = strtok_r(NULL, " \t\r\n", &saveptr);
+    }
+    // NULL-terminate argv array (required by execvp)
+    cmd->args[cmd->argc] = NULL;
+    
+    return cmd;
 }
 
 /*
