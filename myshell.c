@@ -48,6 +48,20 @@ static void sigchld_handler(int signo);
 static volatile sig_atomic_t child_exited = 0;
 
 /*
+ * Display shell prompt with current directory
+ */
+static void display_prompt(void) {
+    char cwd[MAX_TOKEN_SIZE];
+
+    if (getcwd(cwd, sizeof(cwd)) != NULL) {
+        prntf(COLOR_PROMPT "%s $ " COLOR_RESET, cwd);
+    } else {
+        printf(COLOR_PROMPT "shell $ " COLOR_RESET);
+    }
+    fflush(stdout);
+}
+
+/*
 * Main REPL loop
 * Continuosly reads, parses, and executes commands.
 */
