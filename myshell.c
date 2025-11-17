@@ -46,3 +46,43 @@ static void sigchld_handler(int signo);
 
 // Global flag for signal handling.
 static volatile sig_atomic_t child_exited = 0;
+
+/*
+* Main REPL loop
+* Continuosly reads, parses, and executes commands.
+*/
+int main(void) {
+    setup_signal_handlers();
+
+    printf(COLOR_SUCCESS "Modern C shell v1.0\n", COLOR_RESET);
+    printf("Type 'help' for available commands, 'exit' to quit\n\n");
+
+    while(true) {
+        display_prompt();
+
+        char *line = read_line();
+        if (line == NULL) {
+            break;
+        }
+
+        // skipping empty lines.
+        if (strlen(line) == 0) {
+            free(line);
+            continue;
+        }
+
+        Command *cmd = parse_line(line);
+        free(line);
+
+        if (cmd == NULL) {
+            continue;
+        }
+
+        if (cmd -> argc > 0) {
+            execute_command(cmd);
+        }
+        free(cmd);
+    }
+    printf("\nExiting shell...\n");
+    return EXIT_SUCCESS;
+}
