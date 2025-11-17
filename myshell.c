@@ -162,6 +162,26 @@ static void setup_signal_handlers(void) {
 }
 
 /*
+ * Signal handler for SIGCHLD
+ * Reaps zombie background processes
+ */
+
+ static void sigchld_handler(int signo) {
+    (void)signo;
+
+    int saved_errno = errno;
+    pid_t pid;
+    int status;
+
+    // reapping all terminated children.
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+        printf("\n[Backgorund] Process %d terminated\n", pid);
+        child_exited = 1;
+    }
+    errno = saved_errno;
+ }
+
+/*
  * Execute external command using fork/exec pattern
  * Demonstrates core process management concepts
  */
